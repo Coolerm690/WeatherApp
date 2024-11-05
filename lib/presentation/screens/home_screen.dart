@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:weatherapp/data/models/weather_data.dart';
 import 'package:weatherapp/data/repositories/weather_repository.dart';
 import 'package:weatherapp/presentation/widgets/search_bar.dart';
 import 'package:weatherapp/presentation/widgets/weather_card.dart';
-import 'package:weatherapp/data/models/weather_data.dart';
+import 'package:weatherapp/utils/weather_utils.dart';
+import 'package:weatherapp/presentation/widgets/weather_info_item.dart';
+import 'favorite_cities_screen.dart'; // Importa la nuova schermata
+import 'package:weatherapp/data/models/shared_preferences_service.dart'; // Importa il servizio SharedPreferences
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,9 +17,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final WeatherRepository _weatherRepository = WeatherRepository();
+  final SharedPreferencesService _sharedPreferencesService =
+      SharedPreferencesService();
   bool isLoading = false;
   WeatherData? weatherData;
   String? errorMessage;
+  List<String> favoriteCities = []; // Lista delle città preferite
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteCities();
+  }
+
+  Future<void> _loadFavoriteCities() async {
+    favoriteCities = await _sharedPreferencesService.getFavoriteCities();
+    setState(() {});
+  }
 
   Future<void> _getWeatherData(String city) async {
     setState(() {
@@ -39,9 +57,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _toggleFavorite(String city) async {
+    if (favoriteCities.contains(city)) {
+      await _sharedPreferencesService.removeFavoriteCity(city);
+      favoriteCities.remove(city);
+    } else {
+      await _sharedPreferencesService.addFavoriteCity(city);
+      favoriteCities.add(city);
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightBlue[50], // Imposta il colore di sfondo
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -49,6 +79,36 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CustomSearchBar(onSearch: _getWeatherData),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FavoriteCitiesScreen(favoriteCities: favoriteCities),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black87,
+                  backgroundColor: Colors.white, // Imposta il colore del testo
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16.0), // Padding verticale
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment
+                      .start, // Allinea il contenuto a sinistra
+                  children: const [
+                    SizedBox(width: 12),
+                    Icon(Icons.star,
+                        color: Colors
+                            .amber), // Icona a sinistra del testo (opzionale)
+                    // Spazio tra l'icona e il testo
+                    Text('   Città Preferite'),
+                  ],
+                ),
+              ),
               const SizedBox(height: 32),
               if (isLoading)
                 const Center(child: CircularProgressIndicator())
@@ -60,7 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
               else if (weatherData != null)
-                WeatherCard(weather: weatherData!),
+                WeatherCard(
+                  weather: weatherData!,
+                  favoriteCities: favoriteCities,
+                  toggleFavorite: _toggleFavorite,
+                ),
             ],
           ),
         ),

@@ -5,23 +5,42 @@ import 'package:weatherapp/presentation/widgets/weather_info_item.dart';
 
 class WeatherCard extends StatelessWidget {
   final WeatherData weather;
+  final List<String> favoriteCities;
+  final Function(String) toggleFavorite;
 
   const WeatherCard({
     super.key,
     required this.weather,
+    required this.favoriteCities,
+    required this.toggleFavorite,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isFavorite = favoriteCities.contains(weather.cityName);
+
     return Column(
       children: [
-        Text(
-          weather.cityName,
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              weather.cityName,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                isFavorite ? Icons.star : Icons.star_border,
+                color: Colors.yellow,
+                size: 30,
+              ),
+              onPressed: () => toggleFavorite(weather.cityName),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         Container(
@@ -40,7 +59,7 @@ class WeatherCard extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(
-                height: 200, // Altezza della Lottie animation
+                height: 200,
                 width: 250,
                 child: WeatherUtils.getWeatherAnimation(weather.weatherCode),
               ),
