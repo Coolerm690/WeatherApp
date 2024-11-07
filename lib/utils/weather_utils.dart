@@ -24,7 +24,7 @@ class WeatherUtils {
       case 95:
         return Lottie.asset('assets/lottie/thunderstorm.json');
       default:
-        return Lottie.asset('assets/lottie/unknown.json');
+        return Lottie.asset('assets/lottie/cloudy.json');
     }
   }
 
