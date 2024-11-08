@@ -3,10 +3,9 @@ import 'package:weatherapp/data/models/weather_data.dart';
 import 'package:weatherapp/data/repositories/weather_repository.dart';
 import 'package:weatherapp/presentation/widgets/search_bar.dart';
 import 'package:weatherapp/presentation/widgets/weather_card.dart';
-import 'package:weatherapp/utils/weather_utils.dart';
-import 'package:weatherapp/presentation/widgets/weather_info_item.dart';
-import 'favorite_cities_screen.dart'; // Importa la nuova schermata
+import 'favorite_cities_screen.dart';
 import 'package:weatherapp/data/models/shared_preferences_service.dart'; // Importa il servizio SharedPreferences
+import 'package:fl_chart/fl_chart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = false;
   WeatherData? weatherData;
   String? errorMessage;
-  List<String> favoriteCities = []; // Lista delle città preferite
+  List<String> favoriteCities = [];
+  List<double> hourlyTemperatures = [];
 
   @override
   void initState() {
@@ -45,8 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
       final location = await _weatherRepository.getLocation(city);
       final weather = await _weatherRepository.getWeather(location);
 
+      final hourlyTemps = await _weatherRepository.getHourlyTemperature(
+          location.latitude, location.longitude);
+
       setState(() {
         weatherData = weather;
+        hourlyTemperatures = hourlyTemps;
         isLoading = false;
       });
     } catch (e) {
@@ -71,61 +75,84 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue[50], // Imposta il colore di sfondo
+      backgroundColor: Colors.lightBlue[50],
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CustomSearchBar(onSearch: _getWeatherData),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          FavoriteCitiesScreen(favoriteCities: favoriteCities),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black87,
-                  backgroundColor: Colors.white, // Imposta il colore del testo
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 16.0), // Padding verticale
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment
-                      .start, // Allinea il contenuto a sinistra
-                  children: const [
-                    SizedBox(width: 12),
-                    Icon(Icons.star,
-                        color: Colors
-                            .amber), // Icona a sinistra del testo (opzionale)
-                    // Spazio tra l'icona e il testo
-                    Text('   Città Preferite'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (errorMessage != null)
-                Center(
-                  child: Text(
-                    'Error: $errorMessage',
-                    style: const TextStyle(color: Colors.red),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                CustomSearchBar(onSearch: _getWeatherData),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FavoriteCitiesScreen(
+                            favoriteCities: favoriteCities),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black87,
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
                   ),
-                )
-              else if (weatherData != null)
-                WeatherCard(
-                  weather: weatherData!,
-                  favoriteCities: favoriteCities,
-                  toggleFavorite: _toggleFavorite,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: const [
+                      SizedBox(width: 12),
+                      Icon(Icons.star, color: Colors.amber),
+                      Text('   Città Preferite'),
+                    ],
+                  ),
                 ),
-            ],
+                const SizedBox(height: 32),
+                if (isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (errorMessage != null)
+                  Center(
+                    child: Text(
+                      'Error: $errorMessage',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  )
+                else if (weatherData != null)
+                  WeatherCard(
+                    weather: weatherData!,
+                    favoriteCities: favoriteCities,
+                    toggleFavorite: _toggleFavorite,
+                  ),
+                const SizedBox(height: 32),
+                // Grafico della temperatura oraria
+                if (hourlyTemperatures.isNotEmpty)
+                  SizedBox(
+                    height: 250, // Imposta un'altezza fissa per il grafico
+                    child: LineChart(
+                      LineChartData(
+                        gridData: FlGridData(show: true),
+                        titlesData: FlTitlesData(show: true),
+                        borderData: FlBorderData(show: true),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: List.generate(hourlyTemperatures.length,
+                                (index) {
+                              return FlSpot(
+                                  index.toDouble(), hourlyTemperatures[index]);
+                            }),
+                            isCurved: true,
+                            dotData: FlDotData(show: false),
+                            belowBarData: BarAreaData(show: false),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

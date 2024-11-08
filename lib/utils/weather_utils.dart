@@ -73,7 +73,7 @@ class WeatherUtils {
       case 95:
         return 'Temporale';
       default:
-        return 'Sconosciuto';
+        return '---';
     }
   }
 }

@@ -38,4 +38,21 @@ class WeatherRepository {
       location.name,
     );
   }
+
+  Future<List<double>> getHourlyTemperature(
+      double latitude, double longitude) async {
+    final response = await http.get(
+      Uri.parse(
+          'https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&hourly=temperature_2m'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Informazioni meteo non disponibili');
+    }
+
+    final data = json.decode(response.body);
+    final hourly = data['hourly']['temperature_2m'];
+
+    return List<double>.from(hourly.map((temp) => temp.toDouble()));
+  }
 }

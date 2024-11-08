@@ -57,7 +57,7 @@ class _FavoriteCitiesScreenState extends State<FavoriteCitiesScreen> {
           'weatherCode': weather.weatherCode,
         });
       } catch (e) {
-        print('Errore nel recupero del meteo per $city: $e');
+        print('Errore nel recupero delle informazioni meteo per $city: $e');
       }
     }
 

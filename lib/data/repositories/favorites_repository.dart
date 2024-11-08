@@ -1,6 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weatherapp/data/models/favorite_city.dart';
-import 'package:weatherapp/data/repositories/favorites_repository.dart';
 import 'weather_repository.dart';
 
 class FavoritesRepository {
