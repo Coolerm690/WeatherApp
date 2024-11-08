@@ -10,7 +10,7 @@ class WeatherUtils {
 
       case 1:
       case 2:
-        return Lottie.asset('assets/lottie/partly.json');
+        return Lottie.asset('assets/lottie/sunny.json');
       case 3:
         return Lottie.asset('assets/lottie/cloudy.json');
       case 61:
