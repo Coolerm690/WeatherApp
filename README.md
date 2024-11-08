@@ -15,3 +15,6 @@ WeatherApp è un'applicazione che fornisce previsioni meteo in tempo reale, incl
 - **FlChart**: Libreria per visualizzare i grafici delle temperature orarie.
 - **SharedPreferences**: Per salvare le città preferite localmente.
 - **API Meteo**: Utilizza un'API esterna per ottenere i dati meteo in tempo reale.
+
+- 
+![Simulator Screenshot - iPhone 16 - 2024-11-07 at 23 19 45](https://github.com/user-attachments/assets/95c2b8ca-3fb4-4d8e-a654-59079efbab5e)
